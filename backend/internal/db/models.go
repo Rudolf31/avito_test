@@ -7,8 +7,7 @@ package db
 import (
 	"database/sql/driver"
 	"fmt"
-
-	"github.com/jackc/pgx/v5/pgtype"
+	"time"
 )
 
 type PrStatus string
@@ -54,23 +53,29 @@ func (ns NullPrStatus) Value() (driver.Value, error) {
 }
 
 type PullRequest struct {
-	ID              pgtype.UUID
+	ID              string
 	PullRequestName string
-	AuthorID        pgtype.UUID
+	AuthorID        string
 	Status          PrStatus
-	CreatedAt       pgtype.Timestamp
-	MergedAt        pgtype.Timestamp
+	CreatedAt       time.Time
+	MergedAt        *time.Time
+}
+
+type Review struct {
+	ID            string
+	UserID        *string
+	PullRequestID *string
+	Reviewed      *bool
 }
 
 type Team struct {
-	ID       pgtype.UUID
+	ID       string
 	TeamName string
 }
 
 type User struct {
-	ID                    pgtype.UUID
-	Username              string
-	TeamID                pgtype.UUID
-	IsActive              bool
-	AssignedPullRequestID pgtype.UUID
+	ID       string
+	Username string
+	TeamID   string
+	IsActive bool
 }
