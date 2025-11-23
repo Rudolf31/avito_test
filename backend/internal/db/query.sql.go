@@ -7,16 +7,445 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createPullRequest = `-- name: CreatePullRequest :one
+INSERT INTO pull_request (id, pull_request_name, author_id, status)
+VALUES ($1, $2, $3, $4)
+RETURNING id, pull_request_name, author_id, status, created_at, merged_at
+`
+
+type CreatePullRequestParams struct {
+	ID              string
+	PullRequestName string
+	AuthorID        string
+	Status          int16
+}
+
+func (q *Queries) CreatePullRequest(ctx context.Context, arg CreatePullRequestParams) (PullRequest, error) {
+	row := q.db.QueryRow(ctx, createPullRequest,
+		arg.ID,
+		arg.PullRequestName,
+		arg.AuthorID,
+		arg.Status,
+	)
+	var i PullRequest
+	err := row.Scan(
+		&i.ID,
+		&i.PullRequestName,
+		&i.AuthorID,
+		&i.Status,
+		&i.CreatedAt,
+		&i.MergedAt,
+	)
+	return i, err
+}
+
+const createReview = `-- name: CreateReview :one
+INSERT INTO review (id, user_id, pull_request_id, reviewed)
+VALUES ($1, $2, $3, $4)
+RETURNING id, user_id, pull_request_id, reviewed
+`
+
+type CreateReviewParams struct {
+	ID            string
+	UserID        string
+	PullRequestID string
+	Reviewed      bool
+}
+
+func (q *Queries) CreateReview(ctx context.Context, arg CreateReviewParams) (Review, error) {
+	row := q.db.QueryRow(ctx, createReview,
+		arg.ID,
+		arg.UserID,
+		arg.PullRequestID,
+		arg.Reviewed,
+	)
+	var i Review
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.PullRequestID,
+		&i.Reviewed,
+	)
+	return i, err
+}
+
 const createTeam = `-- name: CreateTeam :one
-INSERT INTO team (team_name) VALUES ('Backend Team')
+INSERT INTO team (team_name) VALUES ($1)
 RETURNING id, team_name
 `
 
-func (q *Queries) CreateTeam(ctx context.Context) (Team, error) {
-	row := q.db.QueryRow(ctx, createTeam)
+func (q *Queries) CreateTeam(ctx context.Context, teamName string) (Team, error) {
+	row := q.db.QueryRow(ctx, createTeam, teamName)
 	var i Team
 	err := row.Scan(&i.ID, &i.TeamName)
+	return i, err
+}
+
+const createUser = `-- name: CreateUser :one
+INSERT INTO "user" (id, username, team_id, is_active)
+VALUES ($1, $2, $3, $4)
+RETURNING id, username, team_id, is_active
+`
+
+type CreateUserParams struct {
+	ID       string
+	Username string
+	TeamID   string
+	IsActive bool
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser,
+		arg.ID,
+		arg.Username,
+		arg.TeamID,
+		arg.IsActive,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.TeamID,
+		&i.IsActive,
+	)
+	return i, err
+}
+
+const getPullRequestByID = `-- name: GetPullRequestByID :one
+SELECT id, pull_request_name, author_id, status, created_at, merged_at FROM pull_request WHERE id = $1
+`
+
+func (q *Queries) GetPullRequestByID(ctx context.Context, id string) (PullRequest, error) {
+	row := q.db.QueryRow(ctx, getPullRequestByID, id)
+	var i PullRequest
+	err := row.Scan(
+		&i.ID,
+		&i.PullRequestName,
+		&i.AuthorID,
+		&i.Status,
+		&i.CreatedAt,
+		&i.MergedAt,
+	)
+	return i, err
+}
+
+const getReviewByPRAndUser = `-- name: GetReviewByPRAndUser :one
+SELECT id, user_id, pull_request_id, reviewed FROM review WHERE pull_request_id = $1 AND user_id = $2
+`
+
+type GetReviewByPRAndUserParams struct {
+	PullRequestID string
+	UserID        string
+}
+
+func (q *Queries) GetReviewByPRAndUser(ctx context.Context, arg GetReviewByPRAndUserParams) (Review, error) {
+	row := q.db.QueryRow(ctx, getReviewByPRAndUser, arg.PullRequestID, arg.UserID)
+	var i Review
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.PullRequestID,
+		&i.Reviewed,
+	)
+	return i, err
+}
+
+const getReviewsByPullRequestID = `-- name: GetReviewsByPullRequestID :many
+SELECT id, user_id, pull_request_id, reviewed FROM review WHERE pull_request_id = $1
+`
+
+func (q *Queries) GetReviewsByPullRequestID(ctx context.Context, pullRequestID string) ([]Review, error) {
+	rows, err := q.db.Query(ctx, getReviewsByPullRequestID, pullRequestID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Review
+	for rows.Next() {
+		var i Review
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.PullRequestID,
+			&i.Reviewed,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getReviewsByUserID = `-- name: GetReviewsByUserID :many
+SELECT id, user_id, pull_request_id, reviewed FROM review WHERE user_id = $1
+`
+
+func (q *Queries) GetReviewsByUserID(ctx context.Context, userID string) ([]Review, error) {
+	rows, err := q.db.Query(ctx, getReviewsByUserID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Review
+	for rows.Next() {
+		var i Review
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.PullRequestID,
+			&i.Reviewed,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getTeamByID = `-- name: GetTeamByID :one
+SELECT id, team_name FROM team WHERE id = $1
+`
+
+func (q *Queries) GetTeamByID(ctx context.Context, id string) (Team, error) {
+	row := q.db.QueryRow(ctx, getTeamByID, id)
+	var i Team
+	err := row.Scan(&i.ID, &i.TeamName)
+	return i, err
+}
+
+const getTeamByName = `-- name: GetTeamByName :one
+SELECT id, team_name FROM team WHERE team_name = $1
+`
+
+func (q *Queries) GetTeamByName(ctx context.Context, teamName string) (Team, error) {
+	row := q.db.QueryRow(ctx, getTeamByName, teamName)
+	var i Team
+	err := row.Scan(&i.ID, &i.TeamName)
+	return i, err
+}
+
+const getTeamNameByUserID = `-- name: GetTeamNameByUserID :one
+SELECT t.team_name
+FROM team t
+JOIN "user" u ON u.team_id = t.id
+WHERE u.id = $1
+`
+
+func (q *Queries) GetTeamNameByUserID(ctx context.Context, id string) (string, error) {
+	row := q.db.QueryRow(ctx, getTeamNameByUserID, id)
+	var team_name string
+	err := row.Scan(&team_name)
+	return team_name, err
+}
+
+const getUserByID = `-- name: GetUserByID :one
+SELECT id, username, team_id, is_active FROM "user" WHERE id = $1
+`
+
+func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByID, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.TeamID,
+		&i.IsActive,
+	)
+	return i, err
+}
+
+const getUserWithTeamNameByID = `-- name: GetUserWithTeamNameByID :one
+SELECT u.id, u.username, t.team_name, u.is_active
+FROM "user" u
+JOIN team t ON u.team_id = t.id
+WHERE u.id = $1
+`
+
+type GetUserWithTeamNameByIDRow struct {
+	ID       string
+	Username string
+	TeamName string
+	IsActive bool
+}
+
+func (q *Queries) GetUserWithTeamNameByID(ctx context.Context, id string) (GetUserWithTeamNameByIDRow, error) {
+	row := q.db.QueryRow(ctx, getUserWithTeamNameByID, id)
+	var i GetUserWithTeamNameByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.TeamName,
+		&i.IsActive,
+	)
+	return i, err
+}
+
+const getUsersByTeamID = `-- name: GetUsersByTeamID :many
+SELECT id, username, team_id, is_active FROM "user" WHERE team_id = $1
+`
+
+func (q *Queries) GetUsersByTeamID(ctx context.Context, teamID string) ([]User, error) {
+	rows, err := q.db.Query(ctx, getUsersByTeamID, teamID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.TeamID,
+			&i.IsActive,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const setIsActive = `-- name: SetIsActive :exec
+UPDATE "user" SET is_active = $2 WHERE id = $1
+`
+
+type SetIsActiveParams struct {
+	ID       string
+	IsActive bool
+}
+
+func (q *Queries) SetIsActive(ctx context.Context, arg SetIsActiveParams) error {
+	_, err := q.db.Exec(ctx, setIsActive, arg.ID, arg.IsActive)
+	return err
+}
+
+const updatePullRequestStatus = `-- name: UpdatePullRequestStatus :one
+UPDATE pull_request
+SET status = $2
+    , merged_at = $3
+WHERE id = $1
+RETURNING id, pull_request_name, author_id, status, created_at, merged_at
+`
+
+type UpdatePullRequestStatusParams struct {
+	ID       string
+	Status   int16
+	MergedAt pgtype.Timestamptz
+}
+
+func (q *Queries) UpdatePullRequestStatus(ctx context.Context, arg UpdatePullRequestStatusParams) (PullRequest, error) {
+	row := q.db.QueryRow(ctx, updatePullRequestStatus, arg.ID, arg.Status, arg.MergedAt)
+	var i PullRequest
+	err := row.Scan(
+		&i.ID,
+		&i.PullRequestName,
+		&i.AuthorID,
+		&i.Status,
+		&i.CreatedAt,
+		&i.MergedAt,
+	)
+	return i, err
+}
+
+const updateReviewUser = `-- name: UpdateReviewUser :one
+UPDATE review
+SET user_id = $2
+WHERE id = $1
+RETURNING id, user_id, pull_request_id, reviewed
+`
+
+type UpdateReviewUserParams struct {
+	ID     string
+	UserID string
+}
+
+func (q *Queries) UpdateReviewUser(ctx context.Context, arg UpdateReviewUserParams) (Review, error) {
+	row := q.db.QueryRow(ctx, updateReviewUser, arg.ID, arg.UserID)
+	var i Review
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.PullRequestID,
+		&i.Reviewed,
+	)
+	return i, err
+}
+
+const updateUser = `-- name: UpdateUser :one
+UPDATE "user"
+SET username = $2, team_id = $3, is_active = $4
+WHERE id = $1
+RETURNING id, username, team_id, is_active
+`
+
+type UpdateUserParams struct {
+	ID       string
+	Username string
+	TeamID   string
+	IsActive bool
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUser,
+		arg.ID,
+		arg.Username,
+		arg.TeamID,
+		arg.IsActive,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.TeamID,
+		&i.IsActive,
+	)
+	return i, err
+}
+
+const upsertUser = `-- name: UpsertUser :one
+INSERT INTO "user" (id, username, team_id, is_active)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (id) DO UPDATE SET
+    username = EXCLUDED.username,
+    team_id = EXCLUDED.team_id,
+    is_active = EXCLUDED.is_active
+RETURNING id, username, team_id, is_active
+`
+
+type UpsertUserParams struct {
+	ID       string
+	Username string
+	TeamID   string
+	IsActive bool
+}
+
+func (q *Queries) UpsertUser(ctx context.Context, arg UpsertUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, upsertUser,
+		arg.ID,
+		arg.Username,
+		arg.TeamID,
+		arg.IsActive,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.TeamID,
+		&i.IsActive,
+	)
 	return i, err
 }

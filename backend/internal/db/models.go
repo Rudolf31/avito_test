@@ -19,9 +19,9 @@ type PullRequest struct {
 
 type Review struct {
 	ID            string
-	UserID        *string
-	PullRequestID *string
-	Reviewed      *bool
+	UserID        string
+	PullRequestID string
+	Reviewed      bool
 }
 
 type Team struct {

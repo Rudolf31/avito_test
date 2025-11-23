@@ -4,7 +4,7 @@ import "avito_test/backend/internal/models/dto"
 
 type ReassignRequest struct {
 	PullRequestID string `json:"pull_request_id"`
-	OldUserID     string `json:"old_user_id"`
+	OldReviewerID string `json:"old_reviewer_id"`
 }
 
 type ReassignResponse struct {

@@ -13,19 +13,19 @@ CREATE TABLE IF NOT EXISTS "user" (
 );
 
 CREATE TABLE IF NOT EXISTS pull_request (
-    id VARCHAR(36) PRIMARY KEY,
+    id VARCHAR(36) PRIMARY KEY DEFAULT (gen_random_uuid()::VARCHAR(36)),
     pull_request_name VARCHAR UNIQUE NOT NULL,
     author_id VARCHAR(36) NOT NULL,
     status SMALLINT CHECK(status IN (0, 1)) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     merged_at TIMESTAMPTZ
 );
 
 CREATE TABLE IF NOT EXISTS review (
     id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36) REFERENCES "user"(id),
-    pull_request_id VARCHAR(36) REFERENCES pull_request(id),
-    reviewed BOOLEAN
+    user_id VARCHAR(36) REFERENCES "user"(id) NOT NULL,
+    pull_request_id VARCHAR(36) REFERENCES pull_request(id) NOT NULL,
+    reviewed BOOLEAN NOT NULL
 );
 
 ALTER TABLE pull_request
