@@ -1,8 +1,6 @@
 # Created by https://www.toptal.com/developers/gitignore/api/go,git,visualstudiocode,dotenv
 # Edit at https://www.toptal.com/developers/gitignore?templates=go,git,visualstudiocode,dotenv
 
-### dotenv ###
-.env
 
 ### Git ###
 # Created by git for backups. To disable backups in Git:
