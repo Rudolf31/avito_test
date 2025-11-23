@@ -5,58 +5,14 @@
 package db
 
 import (
-	"database/sql/driver"
-	"fmt"
 	"time"
 )
-
-type PrStatus string
-
-const (
-	PrStatusOpen   PrStatus = "open"
-	PrStatusMerged PrStatus = "merged"
-)
-
-func (e *PrStatus) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = PrStatus(s)
-	case string:
-		*e = PrStatus(s)
-	default:
-		return fmt.Errorf("unsupported scan type for PrStatus: %T", src)
-	}
-	return nil
-}
-
-type NullPrStatus struct {
-	PrStatus PrStatus
-	Valid    bool // Valid is true if PrStatus is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullPrStatus) Scan(value interface{}) error {
-	if value == nil {
-		ns.PrStatus, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.PrStatus.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullPrStatus) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.PrStatus), nil
-}
 
 type PullRequest struct {
 	ID              string
 	PullRequestName string
 	AuthorID        string
-	Status          PrStatus
+	Status          int16
 	CreatedAt       time.Time
 	MergedAt        *time.Time
 }

@@ -1,6 +1,9 @@
 package services
 
-import "avito_test/backend/internal/db"
+import (
+	"avito_test/backend/internal/db"
+	"avito_test/backend/internal/models"
+)
 
 type InternalUserService interface {
 	GetUserByID(userID string) (*db.User, error)
@@ -9,9 +12,8 @@ type InternalUserService interface {
 }
 
 type ExternalUserService interface {
-	// TODO: Create DTO
-	APISetIsActive
-	APIGetReview
+	APISetIsActive(request models.SetIsActiveRequest) (*models.SetIsActiveResponse, error)
+	APIGetReview(userID string) (*models.GetReviewResponse, error)
 }
 
 type UserService interface {

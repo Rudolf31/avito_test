@@ -1,7 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-CREATE TYPE pr_status AS ENUM ('open', 'merged');
-
 CREATE TABLE IF NOT EXISTS team (
     id VARCHAR(36) PRIMARY KEY DEFAULT (gen_random_uuid()::VARCHAR(36)),
     team_name VARCHAR NOT NULL UNIQUE
@@ -18,7 +16,7 @@ CREATE TABLE IF NOT EXISTS pull_request (
     id VARCHAR(36) PRIMARY KEY,
     pull_request_name VARCHAR UNIQUE NOT NULL,
     author_id VARCHAR(36) NOT NULL,
-    status pr_status NOT NULL,
+    status SMALLINT CHECK(status IN (0, 1)) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
     merged_at TIMESTAMPTZ
 );

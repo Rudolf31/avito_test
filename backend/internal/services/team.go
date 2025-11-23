@@ -2,6 +2,8 @@ package services
 
 import (
 	"avito_test/backend/internal/db"
+	"avito_test/backend/internal/models"
+	"avito_test/backend/internal/models/dto"
 )
 
 type InternalTeamService interface {
@@ -12,9 +14,8 @@ type InternalTeamService interface {
 }
 
 type ExternalTeamService interface {
-	// TODO: Create DTO
-	APIAddTeam(name string) (*db.Team, error)
-	APIGetTeam(teamID string) (*db.Team, error)
+	APIAddTeam(request dto.TeamDTO) (*models.TeamAddResponse, error)
+	APIGetTeam(teamName string) (*dto.TeamDTO, error)
 }
 
 type TeamService interface {

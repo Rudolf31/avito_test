@@ -1,9 +1,8 @@
 package dto
 
 type TeamDTO struct {
-	ID       string `json:"id"`
-	TeamName string `json:"team_name"`
-	TeamMemberDTO
+	TeamName string          `json:"team_name"`
+	Members  []TeamMemberDTO `json:"members"`
 }
 
 type TeamMemberDTO struct {

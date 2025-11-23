@@ -1,0 +1,13 @@
+package models
+
+import "avito_test/backend/internal/models/dto"
+
+type ReassignRequest struct {
+	PullRequestID string `json:"pull_request_id"`
+	OldUserID     string `json:"old_user_id"`
+}
+
+type ReassignResponse struct {
+	PR           dto.PullRequestDTO `json:"pr"`
+	ReplacedByID string             `json:"replaced_by"`
+}
