@@ -7,9 +7,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"avito_test/backend/internal/models"
-	"avito_test/backend/internal/models/dto"
-	"avito_test/backend/internal/services"
+	"avito_test/internal/models"
+	"avito_test/internal/models/dto"
+	"avito_test/internal/services"
 )
 
 // RegisterRoutes registers all HTTP routes and handlers using external service interfaces.

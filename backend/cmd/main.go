@@ -1,9 +1,9 @@
 package main
 
 import (
-	"avito_test/backend/internal/db"
-	routes "avito_test/backend/internal/routers"
-	"avito_test/backend/internal/services"
+	"avito_test/internal/db"
+	routes "avito_test/internal/routers"
+	"avito_test/internal/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"

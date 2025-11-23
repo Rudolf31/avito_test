@@ -1,6 +1,6 @@
 package dto
 
-import "avito_test/backend/internal/models/enum"
+import "avito_test/internal/models/enum"
 
 type PullRequestDTO struct {
 	ID                string        `json:"pull_request_id"`

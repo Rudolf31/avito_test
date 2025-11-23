@@ -1,6 +1,6 @@
 package models
 
-import "avito_test/backend/internal/models/dto"
+import "avito_test/internal/models/dto"
 
 type SetIsActiveRequest struct {
 	UserID   string `json:"user_id"`

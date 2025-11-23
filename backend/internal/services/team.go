@@ -1,9 +1,9 @@
 package services
 
 import (
-	"avito_test/backend/internal/db"
-	"avito_test/backend/internal/models"
-	"avito_test/backend/internal/models/dto"
+	"avito_test/internal/db"
+	"avito_test/internal/models"
+	"avito_test/internal/models/dto"
 	"context"
 	"errors"
 

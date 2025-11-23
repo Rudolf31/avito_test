@@ -9,7 +9,7 @@ import (
 
 func NewPool(lc fx.Lifecycle) *pgxpool.Pool {
 
-	pool, errPool := pgxpool.New(context.Background(), "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable")
+	pool, errPool := pgxpool.New(context.Background(), "postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable")
 	if errPool != nil {
 		panic(errPool.Error())
 	}

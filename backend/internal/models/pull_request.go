@@ -1,6 +1,6 @@
 package models
 
-import "avito_test/backend/internal/models/dto"
+import "avito_test/internal/models/dto"
 
 type ReassignRequest struct {
 	PullRequestID string `json:"pull_request_id"`
